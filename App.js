@@ -12,12 +12,39 @@ export default class App extends React.Component {
     super(props);
 
     //list view data source 
-    this.ds = new ListView.DataSource({rowHasChanged: (r1,r2) => r1 !== r2})
+    this.ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 })
 
     this.state = {
-      listViewData: data, 
+      listViewData: data,
       newContact: ""
     }
+  }
+
+  componentDidMount() {
+    var that = this
+
+    firebase.database().ref('/toDo').on('child_added', function (data) {
+      var newData = [...that.state.listViewData]
+      newData.push(data)
+      that.setState({ listViewData: newData })
+    })
+  }
+
+  addRow(data) {
+    var key = firebase.database().ref('/toDo').push.key
+    firebase.database().ref('/toDo').child(key).set({ name: data })
+  }
+
+  async deleteRow(data, secId, rowId, rowMap) {
+    await firebase.database().ref('toDo' + data).set(null)
+    rowMap[`${secId} ${rowId}`].props.closeRow();
+    var newData = [... this.state.listViewData];
+    newData.splice(rowId, 1);
+    this.setState({ listViewData: newData });
+  }
+
+  showInformation() {
+
   }
 
 
@@ -28,31 +55,33 @@ export default class App extends React.Component {
         <Header>
           <Content>
             <Item>
-              <Input placeholder="Add toDo"></Input>
-              <Button>
-                <Icon name="add"/>
+              <Input onChangeText={(newContact) => this.setState({ newContact })}
+                placeholder="Add toDo"
+              />
+              <Button onPress={() => this.addRow(this.state.newContact)}>
+                <Icon name="add" />
               </Button>
             </Item>
           </Content>
         </Header>
 
         <Content>
-          <List 
-          dataSource={this.ds.cloneWithRows(this.state.listViewData)}
-          renderRow={data => 
-          <ListItem>
-            <Text> {data} </Text>
-          </ListItem>
-          }
-          renderLeftHiddenRow={data =>
-          <Button full>
-            <Icon name='information-circle'/>
-          </Button>
-          }
-          renderRightHiddenRow={data =>
-            <Button full danger>
-              <Icon name='trash'/>
-            </Button>
+          <List enableEmptySections
+            dataSource={this.ds.cloneWithRows(this.state.listViewData)}
+            renderRow={data =>
+              <ListItem>
+                <Text> {data.val().name} </Text>
+              </ListItem>
+            }
+            renderLeftHiddenRow={data =>
+              <Button full onPress={() => this.addRow(data)}>
+                <Icon name='information-circle' />
+              </Button>
+            }
+            renderRightHiddenRow={(data, secId, rowId, rowMap) =>
+              <Button full danger onPress={() => this.deleteRow(secId, rowId, rowMap, data)}>
+                <Icon name='trash' />
+              </Button>
             }
 
             leftOpenValue={-75}
