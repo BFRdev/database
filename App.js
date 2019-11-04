@@ -24,10 +24,11 @@ export default class App extends React.Component {
   componentDidMount() {
 
     var that = this
-
+    //add to child 
     firebase.database().ref('/contacts').on('child_added', function (data) {
 
       var newData = [...that.state.listViewData]
+      //push data to database 
       newData.push(data)
       that.setState({ listViewData: newData })
 
@@ -35,14 +36,16 @@ export default class App extends React.Component {
 
   }
 
+  //create row for data to display 
   addRow(data) {
 
     var key = firebase.database().ref('/contacts').push().key
     firebase.database().ref('/contacts').child(key).set({ name: data })
   }
 
+  //delete data 
   async deleteRow(secId, rowId, rowMap, data) {
-
+    //wait for function to exitute 
     await firebase.database().ref('contacts/' + data.key).set(null)
 
     rowMap[`${secId}${rowId}`].props.closeRow();
@@ -52,6 +55,7 @@ export default class App extends React.Component {
 
   }
 
+  //show info not needed 
   showInformation() {
 
   }
@@ -61,43 +65,48 @@ export default class App extends React.Component {
       <Container style={styles.container}>
         {/* using native Base to build UI, StatusBar is for android */}
         <Header style={{ marginTop: StatusBar.currentHeight }}>
-          <Content style={styles.addBtn}>
+          <Content>
             <Item>
-              <Input 
+              <Input
+                //input add items to list 
                 onChangeText={(newContact) => this.setState({ newContact })}
-                placeholder="Add name"
+                placeholder="Add list item"
               />
-              <Button  onPress={() => this.addRow(this.state.newContact)} >
-                <Icon name="add"/>
-                
+              {/* add item to list */}
+              <Button onPress={() => this.addRow(this.state.newContact)} >
+                <Icon name="add" />
               </Button>
             </Item>
           </Content>
         </Header>
         <Content>
           <List
+            //put data into rows 
             enableEmptySections
             dataSource={this.ds.cloneWithRows(this.state.listViewData)}
             renderRow={data =>
               <ListItem>
+                {/* display list item  */}
                 <Text> {data.val().name}</Text>
               </ListItem>
             }
+            // info btn when swipe left 
             renderLeftHiddenRow={data =>
               <Button full onPress={() => this.addRow(data)} >
                 <Icon name="information-circle" />
               </Button>
             }
+
+            // right swipe to delete 
             renderRightHiddenRow={(data, secId, rowId, rowMap) =>
               <Button full danger onPress={() => this.deleteRow(secId, rowId, rowMap, data)}>
                 <Icon name="trash" />
               </Button>
-
             }
 
+            //open btn's at value 
             leftOpenValue={-75}
             rightOpenValue={-75}
-
           />
 
         </Content>
@@ -113,9 +122,8 @@ const styles = StyleSheet.create({
 
   },
   addBtn: {
-    paddingBottom: 50,
     backgroundColor: '#6cc5cc',
-  }
+  },
 });
 
 // import React, { Component } from 'react';
