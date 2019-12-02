@@ -35,7 +35,10 @@ export default class App extends React.Component {
       const value = snapshot.val();
 
       var newData = [...that.state.listViewData]
+
+      // !!! log array DATA in console !!!
       console.log(newData)
+      
       //push data to database 
       // newData.push(data)
       this.setState({ listViewData: value })
@@ -52,7 +55,9 @@ export default class App extends React.Component {
   addRow(data) {
 
     var key = firebase.database().ref('/contacts').push().key
-    // firebase.database().ref('/contacts').child().set({ name: data })
+    firebase.database().ref('/contacts').child().set({ name: data })
+
+    
   }
 
   //delete data 
@@ -105,6 +110,7 @@ export default class App extends React.Component {
           <Text style={styles.text}>
             {this.state.result && this.state.result.length ? this.state.result.length : `nothing ${JSON.stringify(this.state.result)}`}
           </Text>
+          <View style={styles.container}><Text>{data.newContact}</Text></View>
 
           </FlatList>
         </Container>
